@@ -1,6 +1,5 @@
-import IUserRepository from "../interface/IUserRepository"
-import { db } from "../config/firebase"
-import { messaging } from "firebase-admin"
+import IUserRepository from "../interface/IUserRepository.js"
+import { db } from "../config/firebase.js"
 
 export default class UserRepository extends IUserRepository {
     constructor() {
@@ -25,7 +24,7 @@ export default class UserRepository extends IUserRepository {
 
     async getAll() {
         const usuarios = await this.collection.get()
-        return usuarios.docs.map((user) => ({ id: doc.id, ...doc.data()}))
+        return usuarios.docs.map((doc) => ({ id: doc.id, ...doc.data()}))
     }
 
     async findByFullName(nombre, apaterno, amaterno) {
