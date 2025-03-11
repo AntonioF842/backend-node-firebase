@@ -50,19 +50,30 @@ export default class UserRepository extends IUserRepository {
         return usuario.empty ? null : { id:usuario.docs[0].id, ...usuario.docs[0].data() }
     }
 
-    async updateSessionToken (userId, sessionToken) {
-        const user = this.collection.doc(userId)
-        await user.update({ currentSessionToken: sessionToken })
+    async updateSessionToken(userId, sessionToken) {
+        const user = this.collection.doc(userId);
+    
+        // Guardar el token
+        await user.update({ currentSessionToken: sessionToken });
+    
+        // Verificar si el token se guardó correctamente
+        const updatedUser = await user.get();
+        console.log("Usuario después de actualizar:", updatedUser.data());
     }
+    
 
-    async getSessionToken (userId) {
-        const user = this.collection.doc(userId)
-        const userLogged = await user.get()
-        return userLogged.exists ? userLogged.data().currentSessionToken : null
+    async getSessionToken(userId) {
+        const user = this.collection.doc(userId);
+        const userLogged = await user.get();
+    
+        console.log("Datos del usuario en Firebase:", userLogged.exists ? userLogged.data() : "Usuario no encontrado");
+    
+        return userLogged.exists ? userLogged.data().currentSessionToken || null : null;
     }
+    
 
     async getById(id) {
-        const usuario = await this.collection.get(id)
-        return usuario.empty ? null : { id:usuario.docs[0].id, ...usuario.docs[0].data() }
+        const usuario = await this.collection.doc(id).get()
+        return usuario.empty ? null : { id: usuario.id, ...usuario.data() }
     }
 }

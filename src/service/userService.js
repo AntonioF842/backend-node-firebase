@@ -1,10 +1,13 @@
-import UserRepository from "../repositories/userRepository.js";
+import UserRepository from "../repositories/userRepository.js"
+import TokenService from "./tokenService.js"
+import { Usuario } from "../models/Usuario.js"
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
 export default class UserService {
     constructor() {
         this.UserRepository = new UserRepository()
+        this.TokenService = new TokenService()
     }
 
     async getAll() {
@@ -36,17 +39,25 @@ export default class UserService {
         }
         // Encriptar contraseña
         const hashedPassword = await bcrypt.hash(password, 10)
-        const newUser = { ...userData, password:hashedPassword }
-        return this.UserRepository.create(newUser)
+        const newUser = new Usuario ({ ...userData, password:hashedPassword })
+        return this.UserRepository.create({ ...newUser })
     }
 
     async update(id, userData) {
         const { password } =  userData
-        const updateUser = { ...userData }
+        const updateUser = await this.UserRepository.getById(id)
+
+        if (!updateUser) {
+            throw { message: 'Usuario no encontrado', statusCode:404 }
+        }
+
         if (password) {
             updateUser.password = await bcrypt.hash(password, 10)
         }
-        return this.UserRepository.update(id, updateUser)
+
+        const newUser = new Usuario ({ ...updateUser })
+
+        return this.UserRepository.update(id, { ...newUser })
     }
     async delete(id) {
         const userExists = await this.UserRepository.getById(id)
@@ -109,7 +120,7 @@ export default class UserService {
     }
     async handleFailedLogin(id) {
         const user = await this.UserRepository.getById(id)
-        const intentos =  user.intentos + 1
+        const intentos = user.intentos + 1
         if (intentos >= 3) {
             await this.UserRepository.update(id, { bloqueado:true })
             throw { message: 'Usuario Bloqueado despues de  3 intentos, contacta con el Administrador', statusCode : 401 }
