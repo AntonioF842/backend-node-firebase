@@ -86,9 +86,14 @@ export default class UserService {
     
         // Validar la contraseña
         const validPassword = await bcrypt.compare(password, user.password);
-        if (!validPassword) { // Lanzar error si la contraseña es incorrecta
+        if (!validPassword) {
+            // Incrementar el contador de intentos fallidos
+            await this.handleFailedLogin(user.id);
             throw { message: 'Contraseña Incorrecta', statusCode: 401 };
         }
+    
+        // Si la contraseña es correcta, reiniciar el contador de intentos
+        await this.UserRepository.update(user.id, { intentos: 0 });
     
         // Generar un nuevo token JWT
         const token = jwt.sign(
@@ -119,13 +124,19 @@ export default class UserService {
         await this.UserRepository.update(id, { bloqueado: false, intentos: 0 })
     }
     async handleFailedLogin(id) {
-        const user = await this.UserRepository.getById(id)
-        const intentos = user.intentos + 1
-        if (intentos >= 3) {
-            await this.UserRepository.update(id, { bloqueado:true })
-            throw { message: 'Usuario Bloqueado despues de  3 intentos, contacta con el Administrador', statusCode : 401 }
+        const user = await this.UserRepository.getById(id);
+        if (!user) {
+            throw { message: 'Usuario No Encontrado', statusCode: 404 };
         }
-        await this.UserRepository.update(id, { intentos })
+    
+        const intentos = user.intentos + 1;
+    
+        if (intentos >= 3) {
+            await this.UserRepository.update(id, { bloqueado: true, intentos: intentos });
+            throw { message: 'Usuario Bloqueado después de 3 intentos, contacta con el Administrador', statusCode: 401 };
+        }
+    
+        await this.UserRepository.update(id, { intentos: intentos });
     }
     async getByUser(usuario) {
         const user = await this.UserRepository.findByUser(usuario)
