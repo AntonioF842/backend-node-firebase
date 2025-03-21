@@ -1,5 +1,5 @@
 export class Usuario {
-    constructor ({nombre, apaterno,amaterno, direccion, telefono, ciudad, estado, usuario, password, rol = 'contabilidad', bloqueado = false, intentos = 0}) {
+    constructor ({nombre, apaterno,amaterno, direccion, telefono, ciudad, estado, usuario, password, rol = 'rh', bloqueado = false, intentos = 0}) {
         this.nombre = nombre
         this.apaterno = apaterno
         this.amaterno = amaterno    
