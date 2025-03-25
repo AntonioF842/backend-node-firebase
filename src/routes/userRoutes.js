@@ -16,7 +16,7 @@ const userRoutes = [
     {
         method: 'post',
         path: '/create',
-        //middleware: [authMiddleware, roleMiddleware('admin', 'soporte')],
+        middleware: [authMiddleware, roleMiddleware('admin')],
         handler: 'create'
     },
     {
